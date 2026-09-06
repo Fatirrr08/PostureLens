@@ -1,4 +1,5 @@
 export type PostureStatus = 'OPTIMAL' | 'WARNING' | 'SLOUCHING' | 'AWAY';
+export type SensitivityLevel = 'strict' | 'balanced' | 'relaxed';
 
 export interface Point3D {
   x: number;

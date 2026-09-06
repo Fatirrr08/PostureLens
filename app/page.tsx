@@ -53,18 +53,30 @@ export default function HomePage() {
   const [showSkeleton, setShowSkeleton] = useState<boolean>(true);
   const [showGuides, setShowGuides] = useState<boolean>(true);
   const [mirrored, setMirrored] = useState<boolean>(true);
+  const [sensitivity, setSensitivity] = useState<import("@/lib/vision/types").SensitivityLevel>("balanced");
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState<boolean>(false);
 
-  // Load mirror preference
+  // Load preferences
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedMirror = localStorage.getItem("posturelens_mirrored");
       if (savedMirror !== null) {
         setMirrored(savedMirror === "true");
       }
+      const savedSens = localStorage.getItem("posturelens_sensitivity");
+      if (savedSens && ["strict", "balanced", "relaxed"].includes(savedSens)) {
+        setSensitivity(savedSens as import("@/lib/vision/types").SensitivityLevel);
+      }
     }
   }, []);
+
+  const handleChangeSensitivity = (level: import("@/lib/vision/types").SensitivityLevel) => {
+    setSensitivity(level);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("posturelens_sensitivity", level);
+    }
+  };
 
   const handleToggleMirror = () => {
     setMirrored((prev) => {
@@ -149,10 +161,10 @@ export default function HomePage() {
           setUserPresent(true);
           setCurrentLandmarks(lms);
 
-          const ergMetrics = calculateErgonomicMetrics(lms, baseline);
+          const ergMetrics = calculateErgonomicMetrics(lms, baseline, sensitivity);
           setMetrics(ergMetrics);
 
-          const evalResult = evaluatePostureStatus(ergMetrics, baseline);
+          const evalResult = evaluatePostureStatus(ergMetrics, baseline, sensitivity);
           setStatus(evalResult.status);
           setScore(evalResult.score);
 
@@ -174,7 +186,7 @@ export default function HomePage() {
     }
 
     animFrameId.current = requestAnimationFrame(runDetectionLoop);
-  }, [videoElement, baseline, showSkeleton, showGuides, status]);
+  }, [videoElement, baseline, showSkeleton, showGuides, status, sensitivity]);
 
   // Dynamic document title for background tabs
   useEffect(() => {
@@ -451,6 +463,8 @@ export default function HomePage() {
             onToggleGuides={() => setShowGuides(!showGuides)}
             mirrored={mirrored}
             onToggleMirror={handleToggleMirror}
+            sensitivity={sensitivity}
+            onChangeSensitivity={handleChangeSensitivity}
           />
 
           {/* Real-time Session Stats */}

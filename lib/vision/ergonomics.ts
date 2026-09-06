@@ -1,4 +1,4 @@
-import { Point3D, ErgonomicMetrics, CalibrationBaseline, PostureStatus } from "./types";
+import { Point3D, ErgonomicMetrics, CalibrationBaseline, PostureStatus, SensitivityLevel } from "./types";
 import { POSE_LANDMARKS } from "./drawing";
 
 // Default ergonomic baseline values (used before explicit user calibration)
@@ -10,23 +10,54 @@ export const DEFAULT_BASELINE: CalibrationBaseline = {
   calibratedAt: 0,
 };
 
-// Threshold tolerances
-export const ERGONOMIC_THRESHOLDS = {
-  SLOUCH_ANGLE_DELTA: 14.0,       // More than +14° neck tilt beyond baseline indicates slouch
-  SLOUCH_HEIGHT_DROP_RATIO: 0.18, // 18% vertical head drop indicates forward hunch
-  PROXIMITY_MAX_RATIO: 1.35,      // >35% larger shoulder width indicates too close to screen
-  PROXIMITY_MIN_RATIO: 0.65,      // <65% shoulder width indicates sitting too far
-  SHOULDER_TILT_MAX: 8.0,         // >8° shoulder unevenness indicates asymmetric lean
+// Configurable Sensitivity Presets
+export const SENSITIVITY_CONFIGS: Record<
+  SensitivityLevel,
+  {
+    slouchAngleDelta: number;
+    slouchHeightDropRatio: number;
+    proximityMaxRatio: number;
+    proximityMinRatio: number;
+    shoulderTiltMax: number;
+  }
+> = {
+  strict: {
+    slouchAngleDelta: 10.0,
+    slouchHeightDropRatio: 0.14,
+    proximityMaxRatio: 1.25,
+    proximityMinRatio: 0.75,
+    shoulderTiltMax: 6.0,
+  },
+  balanced: {
+    slouchAngleDelta: 14.0,
+    slouchHeightDropRatio: 0.18,
+    proximityMaxRatio: 1.35,
+    proximityMinRatio: 0.65,
+    shoulderTiltMax: 8.0,
+  },
+  relaxed: {
+    slouchAngleDelta: 18.0,
+    slouchHeightDropRatio: 0.23,
+    proximityMaxRatio: 1.45,
+    proximityMinRatio: 0.55,
+    shoulderTiltMax: 11.0,
+  },
 };
+
+// Threshold tolerances (default balanced)
+export const ERGONOMIC_THRESHOLDS = SENSITIVITY_CONFIGS.balanced;
 
 /**
  * Calculates real-time ergonomic vectors and posture metrics from 3D pose landmarks
  */
 export function calculateErgonomicMetrics(
   landmarks: Point3D[],
-  baseline: CalibrationBaseline = DEFAULT_BASELINE
+  baseline: CalibrationBaseline = DEFAULT_BASELINE,
+  sensitivity: SensitivityLevel = "balanced"
 ): ErgonomicMetrics | null {
   if (!landmarks || landmarks.length < 13) return null;
+
+  const thresholds = SENSITIVITY_CONFIGS[sensitivity] || SENSITIVITY_CONFIGS.balanced;
 
   const nose = landmarks[POSE_LANDMARKS.NOSE];
   const leftEar = landmarks[POSE_LANDMARKS.LEFT_EAR];
@@ -90,12 +121,12 @@ export function calculateErgonomicMetrics(
   const heightDropRatio = (activeBaseline.noseShoulderY - noseShoulderY) / Math.max(0.01, activeBaseline.noseShoulderY);
 
   const isSlouching =
-    neckAngleDelta > ERGONOMIC_THRESHOLDS.SLOUCH_ANGLE_DELTA ||
-    heightDropRatio > ERGONOMIC_THRESHOLDS.SLOUCH_HEIGHT_DROP_RATIO;
+    neckAngleDelta > thresholds.slouchAngleDelta ||
+    heightDropRatio > thresholds.slouchHeightDropRatio;
 
   const isProximityAlert =
-    distanceRatio > ERGONOMIC_THRESHOLDS.PROXIMITY_MAX_RATIO ||
-    distanceRatio < ERGONOMIC_THRESHOLDS.PROXIMITY_MIN_RATIO;
+    distanceRatio > thresholds.proximityMaxRatio ||
+    distanceRatio < thresholds.proximityMinRatio;
 
   return {
     neckAngle: Math.round(neckAngle * 10) / 10,
@@ -180,11 +211,14 @@ export function computeCalibrationBaseline(samples: Point3D[][]): CalibrationBas
  */
 export function evaluatePostureStatus(
   metrics: ErgonomicMetrics | null,
-  baseline: CalibrationBaseline = DEFAULT_BASELINE
+  baseline: CalibrationBaseline = DEFAULT_BASELINE,
+  sensitivity: SensitivityLevel = "balanced"
 ): { status: PostureStatus; score: number } {
   if (!metrics) {
     return { status: "AWAY", score: 0 };
   }
+
+  const thresholds = SENSITIVITY_CONFIGS[sensitivity] || SENSITIVITY_CONFIGS.balanced;
 
   let penalty = 0;
   const activeBaseline = baseline.calibratedAt > 0 ? baseline : DEFAULT_BASELINE;
@@ -196,8 +230,8 @@ export function evaluatePostureStatus(
   }
 
   // Shoulder slope penalty
-  if (metrics.shoulderSlope > ERGONOMIC_THRESHOLDS.SHOULDER_TILT_MAX) {
-    penalty += Math.min(20, (metrics.shoulderSlope - ERGONOMIC_THRESHOLDS.SHOULDER_TILT_MAX) * 2.5);
+  if (metrics.shoulderSlope > thresholds.shoulderTiltMax) {
+    penalty += Math.min(20, (metrics.shoulderSlope - thresholds.shoulderTiltMax) * 2.5);
   }
 
   // Proximity penalty

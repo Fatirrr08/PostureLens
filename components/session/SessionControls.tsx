@@ -32,6 +32,8 @@ interface SessionControlsProps {
   onToggleGuides: () => void;
   mirrored: boolean;
   onToggleMirror: () => void;
+  sensitivity: import("@/lib/vision/types").SensitivityLevel;
+  onChangeSensitivity: (level: import("@/lib/vision/types").SensitivityLevel) => void;
 }
 
 export default function SessionControls({
@@ -51,6 +53,8 @@ export default function SessionControls({
   onToggleGuides,
   mirrored,
   onToggleMirror,
+  sensitivity,
+  onChangeSensitivity,
 }: SessionControlsProps) {
   return (
     <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
@@ -133,7 +137,34 @@ export default function SessionControls({
 
       {/* Quick Toolbars & Toggles */}
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs text-slate-400">
-        <span className="font-mono text-[11px] text-slate-500">Display Controls:</span>
+        {/* Sensitivity preset cycle button */}
+        <button
+          onClick={() => {
+            const next =
+              sensitivity === "balanced"
+                ? "strict"
+                : sensitivity === "strict"
+                ? "relaxed"
+                : "balanced";
+            onChangeSensitivity(next);
+          }}
+          title="Click to cycle sensitivity (Balanced -> Strict -> Relaxed)"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] font-mono transition-colors"
+        >
+          <span className="text-slate-500">Sens:</span>
+          <span
+            className={
+              sensitivity === "strict"
+                ? "text-rose-400 font-bold"
+                : sensitivity === "relaxed"
+                ? "text-cyan-400 font-bold"
+                : "text-emerald-400 font-bold"
+            }
+          >
+            {sensitivity.charAt(0).toUpperCase() + sensitivity.slice(1)}
+          </span>
+        </button>
+
         <div className="flex items-center gap-2">
           {/* Camera Flip toggle */}
           <button
