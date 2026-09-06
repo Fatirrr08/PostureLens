@@ -82,7 +82,8 @@ export default function SessionControls({
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-all shadow-sm"
         >
           <Sliders className="w-3.5 h-3.5" />
-          <span>Calibrate Baseline</span>
+          <span>Calibrate</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-slate-900 text-slate-400 rounded border border-slate-700">C</kbd>
         </button>
       </div>
 
@@ -95,6 +96,7 @@ export default function SessionControls({
           >
             <Play className="w-4 h-4 fill-white" />
             <span>Start Focus Session</span>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-emerald-700/80 text-white rounded border border-emerald-500/40">Space</kbd>
           </button>
         ) : (
           <>
@@ -105,6 +107,7 @@ export default function SessionControls({
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Resume</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-emerald-700/80 text-white rounded border border-emerald-500/40">Space</kbd>
               </button>
             ) : (
               <button
@@ -113,6 +116,7 @@ export default function SessionControls({
               >
                 <Pause className="w-4 h-4 fill-white" />
                 <span>Pause</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono bg-amber-700/80 text-white rounded border border-amber-500/40">Space</kbd>
               </button>
             )}
 

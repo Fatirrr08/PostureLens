@@ -319,6 +319,42 @@ export default function HomePage() {
     setBaseline(newBaseline);
   };
 
+  // Keyboard Shortcuts (Space, C, M, S, F)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input or modal textarea
+      if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (!sessionActive) {
+          handleStartSession();
+        } else if (sessionPaused) {
+          handleResumeSession();
+        } else {
+          handlePauseSession();
+        }
+      } else if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        setIsCalibrationOpen((prev) => !prev);
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        handleToggleMute();
+      } else if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        setShowSkeleton((prev) => !prev);
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        handleToggleMirror();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [sessionActive, sessionPaused]);
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
