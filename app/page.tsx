@@ -474,6 +474,7 @@ export default function HomePage() {
             onToggleMirror={handleToggleMirror}
             sensitivity={sensitivity}
             onChangeSensitivity={handleChangeSensitivity}
+            onTestChime={() => soundEngine.playGentleNudge(true)}
           />
 
           {/* Real-time Session Stats */}

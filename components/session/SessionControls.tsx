@@ -12,6 +12,7 @@ import {
   EyeOff,
   Compass,
   FlipHorizontal,
+  Bell,
 } from "lucide-react";
 import { formatSeconds } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ interface SessionControlsProps {
   onToggleMirror: () => void;
   sensitivity: import("@/lib/vision/types").SensitivityLevel;
   onChangeSensitivity: (level: import("@/lib/vision/types").SensitivityLevel) => void;
+  onTestChime: () => void;
 }
 
 export default function SessionControls({
@@ -55,6 +57,7 @@ export default function SessionControls({
   onToggleMirror,
   sensitivity,
   onChangeSensitivity,
+  onTestChime,
 }: SessionControlsProps) {
   return (
     <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
@@ -216,6 +219,15 @@ export default function SessionControls({
             }`}
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          {/* Test chime preview button */}
+          <button
+            onClick={onTestChime}
+            title="Test Posture Alert Chime"
+            className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-amber-400 hover:border-amber-500/30 transition-colors"
+          >
+            <Bell className="w-4 h-4" />
           </button>
         </div>
       </div>
