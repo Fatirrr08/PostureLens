@@ -8,6 +8,7 @@ import PostureAlert from "@/components/posture/PostureAlert";
 import PostureGauge from "@/components/posture/PostureGauge";
 import CalibrationModal from "@/components/posture/CalibrationModal";
 import EyeBreakModal from "@/components/posture/EyeBreakModal";
+import ShortcutsModal from "@/components/posture/ShortcutsModal";
 import SessionControls from "@/components/session/SessionControls";
 import SessionStats from "@/components/session/SessionStats";
 import { visionDetector } from "@/lib/vision/detector";
@@ -35,6 +36,7 @@ import {
   Zap,
   Info,
   CheckCircle2,
+  Keyboard,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -59,6 +61,7 @@ export default function HomePage() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState<boolean>(false);
   const [showEyeBreakModal, setShowEyeBreakModal] = useState<boolean>(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
 
   // Load preferences
   useEffect(() => {
@@ -392,6 +395,9 @@ export default function HomePage() {
       } else if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         handleToggleMirror();
+      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShowShortcutsModal((prev) => !prev);
       }
     };
 
@@ -415,9 +421,16 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Status indicator */}
-        <div className="flex items-center gap-3">
+        {/* Status indicator & Shortcuts helper */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <PostureStatusBadge status={status} userPresent={userPresent} score={score} />
+          <button
+            onClick={() => setShowShortcutsModal(true)}
+            title="Keyboard Shortcuts & Ergonomics Guide (?)"
+            className="p-2 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
+          >
+            <Keyboard className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -544,6 +557,12 @@ export default function HomePage() {
       <EyeBreakModal
         isOpen={showEyeBreakModal}
         onClose={() => setShowEyeBreakModal(false)}
+      />
+
+      {/* Keyboard Shortcuts & Ergonomics Modal */}
+      <ShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
       />
     </div>
   );
