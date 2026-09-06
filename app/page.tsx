@@ -155,6 +155,31 @@ export default function HomePage() {
     animFrameId.current = requestAnimationFrame(runDetectionLoop);
   }, [videoElement, baseline, showSkeleton, showGuides, status]);
 
+  // Dynamic document title for background tabs
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    if (!sessionActive) {
+      document.title = "PostureLens — AI Ergonomics Monitor";
+      return;
+    }
+
+    if (sessionPaused) {
+      document.title = "⏸️ [Paused] PostureLens";
+      return;
+    }
+
+    if (status === "SLOUCHING") {
+      document.title = "🔴 Slouching Detected! — PostureLens";
+    } else if (status === "WARNING") {
+      document.title = "🟡 Posture Warning — PostureLens";
+    } else if (status === "OPTIMAL") {
+      document.title = `🟢 [${score}%] PostureLens`;
+    } else {
+      document.title = "⚪ Waiting... — PostureLens";
+    }
+  }, [status, score, sessionActive, sessionPaused]);
+
   useEffect(() => {
     if (detectorReady && videoElement) {
       animFrameId.current = requestAnimationFrame(runDetectionLoop);
