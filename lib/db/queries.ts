@@ -142,6 +142,43 @@ export async function exportAllDataAsJSON(): Promise<string> {
   );
 }
 
+// Calculate consecutive daily focus streak
+export async function calculateDailyStreak(): Promise<number> {
+  const allSessions = await db.sessions.toArray();
+  if (allSessions.length === 0) return 0;
+
+  const dateSet = new Set<string>();
+  for (const s of allSessions) {
+    const d = new Date(s.startTime);
+    dateSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  }
+
+  let streak = 0;
+  const current = new Date();
+
+  while (true) {
+    const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
+    if (dateSet.has(dateStr)) {
+      streak++;
+      current.setDate(current.getDate() - 1);
+    } else {
+      // If today has no sessions yet, check if yesterday had sessions
+      if (streak === 0) {
+        current.setDate(current.getDate() - 1);
+        const yDateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`;
+        if (dateSet.has(yDateStr)) {
+          streak++;
+          current.setDate(current.getDate() - 1);
+          continue;
+        }
+      }
+      break;
+    }
+  }
+
+  return streak;
+}
+
 // Clear all database history
 export async function clearAllHistory(): Promise<void> {
   await db.sessions.clear();

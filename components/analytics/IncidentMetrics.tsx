@@ -1,15 +1,14 @@
-"use client";
-
 import React from "react";
 import { DailyErgonomicStats } from "@/lib/db/queries";
 import { formatTimeHoursMins } from "@/lib/utils";
-import { AlertTriangle, Clock, Eye, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Clock, Eye, ShieldCheck, Flame, Trophy } from "lucide-react";
 
 interface IncidentMetricsProps {
   stats: DailyErgonomicStats;
+  streak?: number;
 }
 
-export default function IncidentMetrics({ stats }: IncidentMetricsProps) {
+export default function IncidentMetrics({ stats, streak = 1 }: IncidentMetricsProps) {
   const totalPostureSeconds = stats.goodPostureSeconds + stats.badPostureSeconds;
   const optimalRatio =
     totalPostureSeconds > 0
@@ -80,6 +79,28 @@ export default function IncidentMetrics({ stats }: IncidentMetricsProps) {
         <span className="text-[11px] text-slate-500 mt-1 block">
           Time spent upright
         </span>
+      </div>
+
+      {/* 5. Daily Streak Badge */}
+      <div className="col-span-2 lg:col-span-4 p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 shadow-glowAmber">
+            <Flame className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-white">
+                {streak > 0 ? `${streak} Day Ergonomics Streak` : "Start Your Daily Streak Today"}
+              </h4>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                {streak >= 7 ? "Ergonomic Master 🏆" : streak >= 3 ? "Spine Champion ⚡" : "Consistency Builder 🌱"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Consistent good posture prevents tech neck, lumbar fatigue, and chronic tension.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

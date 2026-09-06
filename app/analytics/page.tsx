@@ -24,12 +24,14 @@ import {
   clearAllHistory,
   exportAllDataAsJSON,
   DailyErgonomicStats,
+  calculateDailyStreak,
 } from "@/lib/db/queries";
 import { DBPostureSample } from "@/lib/db/database";
 import { SessionRecord } from "@/lib/vision/types";
 
 export default function AnalyticsPage() {
   const [stats, setStats] = useState<DailyErgonomicStats | null>(null);
+  const [streak, setStreak] = useState<number>(0);
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedSamples, setSelectedSamples] = useState<DBPostureSample[]>([]);
@@ -41,7 +43,9 @@ export default function AnalyticsPage() {
     try {
       const todayStats = await getTodayStats();
       const recentSessions = await getRecentSessions(30);
+      const currentStreak = await calculateDailyStreak();
       setStats(todayStats);
+      setStreak(currentStreak);
       setSessions(recentSessions);
 
       if (recentSessions.length > 0) {
@@ -159,7 +163,7 @@ export default function AnalyticsPage() {
       ) : (
         <>
           {/* Key Metrics Overview */}
-          {stats && <IncidentMetrics stats={stats} />}
+          {stats && <IncidentMetrics stats={stats} streak={streak} />}
 
           {/* Daily Score & Session Timeline Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
