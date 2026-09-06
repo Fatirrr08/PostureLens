@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   Compass,
+  FlipHorizontal,
 } from "lucide-react";
 import { formatSeconds } from "@/lib/utils";
 
@@ -29,6 +30,8 @@ interface SessionControlsProps {
   onToggleSkeleton: () => void;
   showGuides: boolean;
   onToggleGuides: () => void;
+  mirrored: boolean;
+  onToggleMirror: () => void;
 }
 
 export default function SessionControls({
@@ -46,6 +49,8 @@ export default function SessionControls({
   onToggleSkeleton,
   showGuides,
   onToggleGuides,
+  mirrored,
+  onToggleMirror,
 }: SessionControlsProps) {
   return (
     <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
@@ -126,6 +131,19 @@ export default function SessionControls({
       <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs text-slate-400">
         <span className="font-mono text-[11px] text-slate-500">Display Controls:</span>
         <div className="flex items-center gap-2">
+          {/* Camera Flip toggle */}
+          <button
+            onClick={onToggleMirror}
+            title={mirrored ? "Disable Mirror Camera" : "Enable Mirror Camera"}
+            className={`p-1.5 rounded-lg border transition-colors ${
+              mirrored
+                ? "bg-slate-800 text-cyan-400 border-cyan-500/30"
+                : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300"
+            }`}
+          >
+            <FlipHorizontal className="w-4 h-4" />
+          </button>
+
           {/* Skeleton toggle */}
           <button
             onClick={onToggleSkeleton}

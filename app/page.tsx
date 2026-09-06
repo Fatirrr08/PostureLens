@@ -52,8 +52,29 @@ export default function HomePage() {
   // Overlay settings
   const [showSkeleton, setShowSkeleton] = useState<boolean>(true);
   const [showGuides, setShowGuides] = useState<boolean>(true);
+  const [mirrored, setMirrored] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState<boolean>(false);
+
+  // Load mirror preference
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMirror = localStorage.getItem("posturelens_mirrored");
+      if (savedMirror !== null) {
+        setMirrored(savedMirror === "true");
+      }
+    }
+  }, []);
+
+  const handleToggleMirror = () => {
+    setMirrored((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("posturelens_mirrored", String(next));
+      }
+      return next;
+    });
+  };
 
   // Focus Session state
   const [sessionActive, setSessionActive] = useState<boolean>(false);
@@ -327,12 +348,14 @@ export default function HomePage() {
           <div className="relative aspect-[4/3] w-full rounded-2xl bg-slate-950 border border-slate-800/80 shadow-2xl overflow-hidden group">
             <WebcamFeed
               onVideoReady={(video) => setVideoElement(video)}
+              mirrored={mirrored}
               className="w-full h-full"
             >
               <CanvasOverlay
                 ref={overlayRef}
                 showGuides={showGuides}
                 status={status}
+                mirrored={mirrored}
               />
             </WebcamFeed>
 
@@ -390,6 +413,8 @@ export default function HomePage() {
             onToggleSkeleton={() => setShowSkeleton(!showSkeleton)}
             showGuides={showGuides}
             onToggleGuides={() => setShowGuides(!showGuides)}
+            mirrored={mirrored}
+            onToggleMirror={handleToggleMirror}
           />
 
           {/* Real-time Session Stats */}
