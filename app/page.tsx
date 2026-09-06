@@ -7,6 +7,7 @@ import PostureStatusBadge from "@/components/posture/PostureStatusBadge";
 import PostureAlert from "@/components/posture/PostureAlert";
 import PostureGauge from "@/components/posture/PostureGauge";
 import CalibrationModal from "@/components/posture/CalibrationModal";
+import EyeBreakModal from "@/components/posture/EyeBreakModal";
 import SessionControls from "@/components/session/SessionControls";
 import SessionStats from "@/components/session/SessionStats";
 import { visionDetector } from "@/lib/vision/detector";
@@ -56,6 +57,7 @@ export default function HomePage() {
   const [sensitivity, setSensitivity] = useState<import("@/lib/vision/types").SensitivityLevel>("balanced");
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState<boolean>(false);
+  const [showEyeBreakModal, setShowEyeBreakModal] = useState<boolean>(false);
 
   // Load preferences
   useEffect(() => {
@@ -228,7 +230,14 @@ export default function HomePage() {
   useEffect(() => {
     if (sessionActive && !sessionPaused) {
       sessionTimerRef.current = setInterval(() => {
-        setDurationSeconds((s) => s + 1);
+        setDurationSeconds((s) => {
+          const next = s + 1;
+          // Trigger 20-20-20 eye strain break reminder every 20 minutes (1200s)
+          if (next > 0 && next % 1200 === 0) {
+            setShowEyeBreakModal(true);
+          }
+          return next;
+        });
 
         // Track posture quality intervals
         if (status === "OPTIMAL") {
@@ -497,6 +506,12 @@ export default function HomePage() {
         onClose={() => setIsCalibrationOpen(false)}
         currentLandmarks={currentLandmarks}
         onCalibrationComplete={handleCalibrationComplete}
+      />
+
+      {/* 20-20-20 Eye Strain Break Modal */}
+      <EyeBreakModal
+        isOpen={showEyeBreakModal}
+        onClose={() => setShowEyeBreakModal(false)}
       />
     </div>
   );
