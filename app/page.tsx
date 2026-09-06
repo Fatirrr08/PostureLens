@@ -55,6 +55,7 @@ export default function HomePage() {
   const [showGuides, setShowGuides] = useState<boolean>(true);
   const [mirrored, setMirrored] = useState<boolean>(true);
   const [sensitivity, setSensitivity] = useState<import("@/lib/vision/types").SensitivityLevel>("balanced");
+  const [batterySaver, setBatterySaver] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isCalibrationOpen, setIsCalibrationOpen] = useState<boolean>(false);
   const [showEyeBreakModal, setShowEyeBreakModal] = useState<boolean>(false);
@@ -70,8 +71,22 @@ export default function HomePage() {
       if (savedSens && ["strict", "balanced", "relaxed"].includes(savedSens)) {
         setSensitivity(savedSens as import("@/lib/vision/types").SensitivityLevel);
       }
+      const savedEco = localStorage.getItem("posturelens_eco");
+      if (savedEco !== null) {
+        setBatterySaver(savedEco === "true");
+      }
     }
   }, []);
+
+  const handleToggleBatterySaver = () => {
+    setBatterySaver((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("posturelens_eco", String(next));
+      }
+      return next;
+    });
+  };
 
   const handleChangeSensitivity = (level: import("@/lib/vision/types").SensitivityLevel) => {
     setSensitivity(level);
@@ -104,6 +119,7 @@ export default function HomePage() {
   const overlayRef = useRef<CanvasOverlayRef | null>(null);
   const animFrameId = useRef<number | null>(null);
   const lastSampleLogTime = useRef<number>(0);
+  const lastFrameTime = useRef<number>(0);
   const sessionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Initialize vision detector and load stored baseline
@@ -143,6 +159,13 @@ export default function HomePage() {
     }
 
     const now = performance.now();
+    const minInterval = batterySaver ? 66 : 30; // 15 FPS vs ~33 FPS
+    if (now - lastFrameTime.current < minInterval) {
+      animFrameId.current = requestAnimationFrame(runDetectionLoop);
+      return;
+    }
+    lastFrameTime.current = now;
+
     const lms = visionDetector.detect(videoElement, now);
 
     const canvasOverlay = overlayRef.current;
@@ -188,7 +211,7 @@ export default function HomePage() {
     }
 
     animFrameId.current = requestAnimationFrame(runDetectionLoop);
-  }, [videoElement, baseline, showSkeleton, showGuides, status, sensitivity]);
+  }, [videoElement, baseline, showSkeleton, showGuides, status, sensitivity, batterySaver]);
 
   // Dynamic document title for background tabs
   useEffect(() => {
@@ -424,11 +447,19 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* Live FPS / Engine Watermark */}
-            <div className="absolute bottom-3 left-3 z-30 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-slate-800/80 text-[10px] font-mono text-slate-400 flex items-center gap-2 backdrop-blur-sm">
-              <Zap className="w-3 h-3 text-emerald-400" />
-              <span>WASM • 30 FPS • Local</span>
-            </div>
+            {/* Live FPS / Battery Saver Toggle Badge */}
+            <button
+              onClick={handleToggleBatterySaver}
+              title="Click to toggle Battery Saver Mode (15 FPS vs 30 FPS)"
+              className={`absolute bottom-3 left-3 z-30 px-2.5 py-1 rounded-lg border text-[10px] font-mono flex items-center gap-2 backdrop-blur-sm transition-colors ${
+                batterySaver
+                  ? "bg-amber-950/80 border-amber-500/40 text-amber-300 shadow-glowAmber"
+                  : "bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white"
+              }`}
+            >
+              <Zap className={`w-3 h-3 ${batterySaver ? "text-amber-400" : "text-emerald-400"}`} />
+              <span>{batterySaver ? "ECO • 15 FPS" : "WASM • 30 FPS"}</span>
+            </button>
 
             {/* Baseline Calibrated Badge */}
             {baseline.calibratedAt > 0 && (
